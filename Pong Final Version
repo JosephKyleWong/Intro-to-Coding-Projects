@@ -21,7 +21,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 
-PADDLE_HEIGHT = 570
+PADDLE_HEIGHT = 75
 BALL_WIDTH = BALL_HEIGHT = 20
 
 
@@ -89,20 +89,22 @@ class Ball(Entity):
        self.rect = self.ball.get_rect()
        self.rect = self.rect.move(x, y)
 
-   def restart(self, lPaddle, rPaddle, screen):
+   def restart(self, lPaddle, rPaddle, screen,tPaddle,bPaddle):
        time.sleep(2)
        self.rect.y = WIN_H / 2 - (BALL_HEIGHT / 2)
        self.rect.x = WIN_W / 2
        self.speed = [-2, -2]
        lPaddle.y = (WIN_H / 2) - (PADDLE_HEIGHT / 2)
        rPaddle.y = (WIN_H / 2) - (PADDLE_HEIGHT / 2)
+       tPaddle.x=  (WIN_W / 2) - 37.5
+       bPaddle.x=  (WIN_W / 2) - 37.5
 
        return True
 
    def update(self, lPaddle, rPaddle, tPaddle, bPaddle):
        # If ball hits the top or bottom
-       if self.rect.top < 0 or self.rect.top > WIN_H - BALL_HEIGHT:
-           self.speed[1] = -self.speed[1]
+       #if self.rect.top < 0 or self.rect.top > WIN_H - BALL_HEIGHT:
+           #self.speed[1] = -self.speed[1]
            # print (playSound(sound["bop"], 1))
 
            # If ball hits paddle
@@ -132,7 +134,7 @@ class Ball(Entity):
        if self.speed[1] < 0:
            if (self.rect.top > bPaddle.y + 20 and self.rect.top < bPaddle.y - 15) and (
                    self.rect.left > bPaddle.x and self.rect.left < (bPaddle.x + bPaddle.pWidth)):
-               print("hit")
+               print("hit bottom")
                self.speed[1] = -self.speed[1]
                self.speed[1] = self.speed[1] - 0.5
                if self.speed[0] < 0:
@@ -144,9 +146,34 @@ class Ball(Entity):
        else:
            if (self.rect.top < (tPaddle.y + 30) and self.rect.top > tPaddle.y - 5) and (
                    self.rect.left > (tPaddle.x - 10) and self.rect.left < tPaddle.x + 85):
-               print("hit")
+               print("hit bottom 2")
                self.speed[1] = -self.speed[1]
                self.speed[1] = self.speed[1] - 0.5
+               if self.speed[0] < 0:
+                   self.speed[0] = self.speed[0] - 0.5
+               else:
+                   self.speed[0] = self.speed[0] + 0.5
+               print(self.speed)
+               #print (playSound(sound["beep"], 1))
+
+       if self.speed[1] > 0:
+           if (self.rect.top > bPaddle.y + 20 and self.rect.top < bPaddle.y - 15) and (
+                   self.rect.left > bPaddle.x and self.rect.left < (bPaddle.x + bPaddle.pWidth)):
+               print("hit top")
+               self.speed[1] = -self.speed[1]
+               self.speed[1] = self.speed[1] - 0.5
+               if self.speed[0] < 0:
+                   self.speed[0] = self.speed[0] - 0.5
+               else:
+                   self.speed[0] = self.speed[0] + 0.5
+               print(self.speed)
+               #print (playSound(sound["beep"], 1))
+       if self.speed[1] < 0:
+           if (self.rect.top < (bPaddle.y + 20) and self.rect.top > bPaddle.y - 5) and (
+                   self.rect.left > (bPaddle.x - 10) and self.rect.left < bPaddle.x + 85):
+               print("hit top 2")
+               self.speed[1] = -self.speed[1]
+               self.speed[1] = self.speed[1] + 0.5
                if self.speed[0] < 0:
                    self.speed[0] = self.speed[0] - 0.5
                else:
@@ -259,9 +286,9 @@ def main():
    while play:
        # Print background
        screen.fill(BLACK)
-       #game_back = pygame.image.load("image/background.jpg").convert()
-       #game_back = pygame.transform.scale(game_back, (WIN_W, WIN_H))
-       #screen.blit(game_back, (0, 0))
+       game_back = pygame.image.load("image/background_V.1.jpg").convert()
+       game_back = pygame.transform.scale(game_back, (WIN_W, WIN_H))
+       screen.blit(game_back, (0, 0))
        screen.blit(lPaddle.image, (lPaddle.x, lPaddle.y))
        screen.blit(rPaddle.image, (rPaddle.x, rPaddle.y))
        screen.blit(tPaddle.image, (tPaddle.x, tPaddle.y))
@@ -363,18 +390,22 @@ def main():
            bPaddle.update_horizontal(bp_moveLEFT, bp_moveRIGHT)
            ball.update(lPaddle, rPaddle, tPaddle, bPaddle)
            # If ball moves off the screen
-           if ball.rect.left < 0 - ball.rect.width or ball.rect.left > WIN_W + ball.rect.width:
+           if ball.rect.left < 0 - ball.rect.width or ball.rect.left > WIN_W + ball.rect.width or ball.rect.top < 0 - ball.rect.width or ball.rect.top > WIN_H - 20:
                if ball.rect.left < 0:
                    rPaddle.score += 1
                elif ball.rect.left > WIN_H + ball.rect.width:
                    lPaddle.score += 1
+               elif ball.rect.top < 0:
+                   bPaddle.score += 1
+               elif ball.rect.top > WIN_H - 20:
+                   tPaddle.score += 1
                # playSound(sound["end"], 1)
-               count = ball.restart(lPaddle, rPaddle, screen)
+               count = ball.restart(lPaddle, rPaddle, screen,tPaddle,bPaddle)
                countDown = 3
            lPaddle.speed = [-2, -2]
            rPaddle.speed = [-2, -2]
        # Game ends
-       if lPaddle.score == 3 or rPaddle.score == 3:
+       if lPaddle.score == 3 or rPaddle.score == 3 or tPaddle.score == 3 or bPaddle.score == 3:
            # playSound(sound["boom"], 1)
            break
 
@@ -391,11 +422,15 @@ def main():
        end_back = pygame.transform.scale(end_back, (WIN_W, WIN_H))
        screen.blit(end_back, (0, 0))
        # End Text: Player wins
-       if lPaddle.score == 3 or rPaddle.score == 3:
+       if lPaddle.score == 3 or rPaddle.score == 3 or tPaddle.score == 3 or bPaddle.score == 3:
            if lPaddle.score == 3:
                sen = "Player 1 Wins!"
-           else:
+           elif tPaddle.score == 3:
                sen = "Player 2 Wins!"
+           elif rPaddle.score == 3:
+               sen = "Player 3 Wins!"
+           else:
+               sen = "Player 4 Wins!"
 
            text = txtRect(sen, 0, 0, 40)
            text = txtRect(sen, WIN_W / 2 - (text[1].width / 2) - 130, WIN_H / 4, 100)
